@@ -1,6 +1,7 @@
 import re
 import os
 import json
+import time
 import rpyc
 from threading import Lock
 
@@ -20,12 +21,13 @@ def word_count(filename:str, task_id: int):
 def reduce_word(word: str):
     count = 0
     with open(f"r-work-{word}.json", 'r') as fp:
+        time.sleep(0.01)
         words = json.load(fp)
         count = len(words)
-        
-    with open("mr-out", "a") as fp:
+
+    with open(f"mr-out-{word}", "w") as fp:
         fp.write(f"{word} {count}\n")
-    # print(f"Finish reduce work: {word}")
+    print(f"Finish reduce work: {word}")
 
 
 if __name__ == '__main__':
@@ -39,5 +41,8 @@ if __name__ == '__main__':
         else: break
     while True:
         word, complete = conn.root.get_reduce_task()
-        if word is not None : reduce_word(word)
+        if word is not None : 
+            reduce_word(word)
+            conn.root.complete_reduce_tasks(word)
         if complete: break
+    sys.exit(0)

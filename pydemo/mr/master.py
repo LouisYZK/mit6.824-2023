@@ -1,10 +1,14 @@
 import os
+import sys
 import queue
 import time
 import json
 from typing import Optional
+from itertools import groupby
 from multiprocessing import Queue
+import threading
 from threading import Lock
+from rpyc.utils.server import ThreadedServer
 import rpyc
 
 tasks: Queue = Queue()
@@ -18,8 +22,11 @@ global TASK_ID, REDUCE_TASK_START, REDUCE_TASK_READY
 TASK_ID = 0
 REDUCE_TASK_START = False
 REDUCE_TASK_READY = False
+REDUCE_TASK_TO_COM = dict()
 
 REDUCE_TASKS = Queue()
+
+
 def prepare_reduce_task():
     lock = Lock()
     lock.acquire()
@@ -35,16 +42,11 @@ def prepare_reduce_task():
                     keys_list += [item[0] for item in words]
         keys_list = sorted(keys_list)
 
-        unique_words = set(keys_list)
-        cursor = 0
-        for ind in range(len(keys_list)):
-            if keys_list[ind] == keys_list[cursor]:
-                continue
-            else:
-                word = keys_list[cursor]
-                with open(f"r-work-{word}.json", 'w') as fp:
-                    json.dump(keys_list[cursor: ind - 1], fp)
-                cursor = ind
+        for word, values in groupby(keys_list):
+            with open(f"r-work-{word}.json", 'w') as fp:
+                json.dump(list(values), fp)
+            REDUCE_TASKS.put(word)
+            REDUCE_TASK_TO_COM[word] = True
 
         REDUCE_TASK_READY = True
         return
@@ -67,6 +69,12 @@ class MasterService(rpyc.Service):
         global MAP_TASKS_TO_COM
         lock = Lock(); lock.acquire()
         MAP_TASKS_TO_COM.pop(filename)
+        lock.release()
+    
+    def exposed_complete_reduce_tasks(self, word):
+        global REDUCE_TASK_TO_COM
+        lock = Lock(); lock.acquire()
+        REDUCE_TASK_TO_COM.pop(word)
         lock.release()
 
     def exposed_get_map_task(self) -> Optional[str]:
@@ -98,12 +106,20 @@ class MasterService(rpyc.Service):
                 lock.release()
             else:
                 return None, True
-                print("MapReduece Task over....")
                 lock.release()
-    
-    
+
+def done(server: ThreadedServer):
+    """check the if main server is done"""
+    while True:
+        if not REDUCE_TASK_TO_COM and REDUCE_TASK_READY:
+            break
+        else: time.sleep(3)
+    print("MapReduece Task over....")
+    server.close()
+
 
 if __name__ == "__main__":
-    from rpyc.utils.server import ThreadedServer
     t = ThreadedServer(MasterService, port=18861)
+    threading.Thread(target=done, args=(t, )).start()
+
     t.start()
