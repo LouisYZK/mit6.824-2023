@@ -1,48 +1,59 @@
+"""
+MIT 6.824 Lab1 MapReduce
+Python Version
+worker
+"""
 import re
 import os
 import json
 import time
 import rpyc
+from itertools import groupby
 from threading import Lock
 
+rpyc.core.protocol.DEFAULT_CONFIG['allow_pickle'] = True
 
-def word_count(filename:str, task_id: int):
+
+def word_count(filename:str, conn: rpyc.Connection):
+    """Map Function
+    :filename: In this demo, we donnot seprate M chunks, use
+     the number of files as M;
+    :map_id: file id
+    :conn: rpc connection
+    """
     with open(filename) as file:
         words = list()
         for line in file:
             for word in line.split(' '):
                 word = ''.join(list(filter(str.isalpha, word)))
                 if word: words.append((word, 1))
-
-    with open(f'map_task_{task_id}.json', 'w') as f:
-        json.dump(words, f)
+    conn.root.map_buffered(words, filename)
 
 
-def reduce_word(word: str):
-    count = 0
-    with open(f"r-work-{word}.json", 'r') as fp:
+def reduce_word(reduce_no: int):
+    with open(f"r-{reduce_no}.json", 'r') as fp:
         time.sleep(0.01)
-        words = json.load(fp)
-        count = len(words)
-
-    with open(f"mr-out-{word}", "w") as fp:
-        fp.write(f"{word} {count}\n")
-    print(f"Finish reduce work: {word}")
+        words_list = json.load(fp)
+    words_list = sorted(words_list, key=lambda x: x[0])
+    for key, values in groupby(words_list, lambda x: x[0]):
+        with open(f"mr-out-{reduce_no}", "a") as fp:
+            fp.write(f"{key} {len(list(values))}\n")
+    print(f"Finish reduce work: {reduce_no}")
 
 
 if __name__ == '__main__':
     import sys
     conn = rpyc.connect("localhost", 18861)
     while True:
-        f, task_id = conn.root.get_map_task()
+        f = conn.root.get_map_task()
+        print(f)
         if f is not None :
-            word_count(f, task_id)
-            conn.root.complete_map_tasks(f)
+            word_count(f, conn)
         else: break
     while True:
-        word, complete = conn.root.get_reduce_task()
-        if word is not None : 
-            reduce_word(word)
-            conn.root.complete_reduce_tasks(word)
+        reduce_no, complete = conn.root.get_reduce_task()
+        if reduce_no is not None : 
+            reduce_word(reduce_no)
+            conn.root.complete_reduce_tasks(reduce_no)
         if complete: break
     sys.exit(0)

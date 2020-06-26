@@ -6,7 +6,8 @@ rm *.json
 
 START=`date +%s`;
 
-timeout -k 2s 180s  python3.8 master.py & 
+# timeout -k 2s 60s python3.8 master.py &
+python3.8 master.py &
 sleep 1
 
 timeout -k 2s 180s  python3.8 worker.py & 
@@ -22,7 +23,8 @@ timeout -k 2s 180s  python3.8 worker.py &
 # timeout -k 2s 180s  python3.8 worker.py &
 # timeout -k 2s 180s  python3.8 worker.py & 
 
-wait 
+wait
+
 END=`date +%s`;
 
 
