@@ -12,12 +12,8 @@ sleep 1
 
 timeout -k 2s 180s  python3.8 worker.py & 
 timeout -k 2s 180s  python3.8 worker.py & 
-# timeout -k 2s 180s  python3.8 worker.py &
-# timeout -k 2s 180s  python3.8 worker.py & 
-# timeout -k 2s 180s  python3.8 worker.py & 
-# timeout -k 2s 180s  python3.8 worker.py & 
-# timeout -k 2s 180s  python3.8 worker.py &
-# timeout -k 2s 180s  python3.8 worker.py & 
+timeout -k 2s 180s  python3.8 worker.py &
+timeout -k 2s 180s  python3.8 worker.py & 
 # timeout -k 2s 180s  python3.8 worker.py & 
 # timeout -k 2s 180s  python3.8 worker.py & 
 # timeout -k 2s 180s  python3.8 worker.py &

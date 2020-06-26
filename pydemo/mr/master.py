@@ -32,11 +32,14 @@ MAP_BUFFERED = list()
 global TASK_ID, REDUCE_TASK_START, REDUCE_TASK_READY
 TASK_ID = 0
 REDUCE_TASK_START = False
+
+
 REDUCE_TASK_READY = False
 REDUCE_TASK_TO_COM = dict()
-
 REDUCE_TASKS = Queue()
 REDUCE_NUM = 50
+for i in range(REDUCE_NUM):
+    REDUCE_TASKS.put(i); REDUCE_TASK_TO_COM[i] = False
 
 
 def restore_map_buffer_to_disk():
@@ -72,6 +75,8 @@ def partition_func(words, filename):
         
 
 class MasterService(rpyc.Service):
+    global REDUCE_NUM
+    exposed_reduce_num = REDUCE_NUM
 
     def __init__(self):
         pass
@@ -98,10 +103,12 @@ class MasterService(rpyc.Service):
         lock = Lock()
         lock.acquire()
         if not MAP_TASKS.empty():
-            return MAP_TASKS.get()
+            global TASK_ID
+            TASK_ID += 1
+            return MAP_TASKS.get(), TASK_ID
             lock.release()
         else:
-            return None
+            return None, 0
             lock.release()
 
     def exposed_map_buffered(self, words, filename):
@@ -112,36 +119,34 @@ class MasterService(rpyc.Service):
         lock = Lock()
         lock.acquire()
         global REDUCE_TASK_READY
+        if not REDUCE_TASK_READY:
+            return False, None
         if not REDUCE_TASKS.empty():
-            return REDUCE_TASKS.get(), False
+            return True, REDUCE_TASKS.get()
             lock.release()
         else:
-            if not REDUCE_TASK_READY:
-                return None, False
-                lock.release()
-            else:
-                return None, True
-                lock.release()
-
-def check_map_done():
-    global MAP_TASKS_TO_COM
-    while True:
-        if not MAP_TASKS_TO_COM: ## when equals to {}
-            print("start to reduce...")
-            restore_map_buffer_to_disk()
-            break
-        else:
-            time.sleep(1)
+            return True, None
+            lock.release()
 
 
 def done(server: ThreadedServer):
     """check the if main server is done"""
     while True:
-        if not REDUCE_TASK_TO_COM and REDUCE_TASK_READY:
+        if not REDUCE_TASK_TO_COM:
             break
-        else: time.sleep(3)
+        else: time.sleep(1)
     print("MapReduece Task over....")
     server.close()
+
+def check_map_done():
+    while True:
+        if not MAP_TASKS_TO_COM:
+            print("MAP over....")
+            global REDUCE_TASK_READY
+            REDUCE_TASK_READY = True
+            break
+        else: time.sleep(1)
+    
 
 
 if __name__ == "__main__":

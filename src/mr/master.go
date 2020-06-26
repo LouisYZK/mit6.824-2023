@@ -6,11 +6,18 @@ import (
 	"net/http"
 	"net/rpc"
 	"os"
+	"sync"
 )
+
+type Task struct {
+	Filename string
+	Alive    bool
+	mu       sync.Mutex
+}
 
 type Master struct {
 	// Your definitions here.
-
+	MapTasks []Task
 }
 
 // Your code here -- RPC handlers for the worker to call.
@@ -60,9 +67,17 @@ func (m *Master) Done() bool {
 //
 func MakeMaster(files []string, nReduce int) *Master {
 	m := Master{}
-
+	for _, file := range files {
+		m.MapTasks = append(m.MapTasks, Task{
+			Filename: file,
+			Alive:    true,
+		})
+	}
 	// Your code here.
 
 	m.server()
 	return &m
+}
+
+func (master *Master) GetMapTask(reply *Reply) error {
 }
