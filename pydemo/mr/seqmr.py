@@ -7,9 +7,9 @@ from itertools import groupby
 
 # Map process
 words_list  = []
-for file in os.listdir("."):
+for file in os.listdir(".."):
     if file.endswith("txt"):
-        with open(file) as f:
+        with open(f'../{file}') as f:
             words = list()
             for line in f:
                 for word in line.split(' '):

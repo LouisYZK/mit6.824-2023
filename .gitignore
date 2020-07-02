@@ -3,3 +3,4 @@ api.key
 *-handin.tar.gz
 *.json
 mr-*
+*.pyc

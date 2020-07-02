@@ -31,7 +31,7 @@ def nonblocking(func):
     return wrapper
 
 async def get_words(filename):
-    async with aiofiles.open(filename) as file:
+    async with aiofiles.open(f'../{filename}') as file:
         words = list()
         async for line in file:
             for word in line.split(' '):

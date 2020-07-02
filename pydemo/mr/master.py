@@ -20,7 +20,7 @@ rpyc.core.protocol.DEFAULT_CONFIG['allow_pickle'] = True
 
 tasks: Queue = Queue()
 tasks_to_complete = dict()
-for file in os.listdir('.'):
+for file in os.listdir('..'):
     if file.endswith(".txt"): tasks.put(file); tasks_to_complete[file] = False
 MAP_TASKS = tasks
 global MAP_TASKS_TO_COM

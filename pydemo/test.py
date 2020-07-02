@@ -1,4 +1,5 @@
 from time import sleep
+import asyncio
 from asyncio import get_event_loop, sleep as asleep, gather, ensure_future
 from concurrent.futures import ThreadPoolExecutor, wait, Future, ProcessPoolExecutor
 from functools import wraps
@@ -19,8 +20,11 @@ def nonblocking(func) -> Future:
 def foo(n: int):
     """假装我是个很耗时的阻塞调用"""
     print('start blocking task...')
-    sleep(3)
+    # sleep(3)
+    for i in range(10000): 
+        n += i
     print('end blocking task')
+    print(n)
     return n
 
 
@@ -56,7 +60,9 @@ async def coroutine_main():
 
 async def main():
     tasks = []
-    for i in range(5): tasks.append(coroutine_demo(i))
-    await gather(*tasks)
+    for i in range(5): 
+        # tasks.append(coroutine_demo(i))
+        asyncio.create_task(coroutine_demo(i))
+    # await gather(*tasks)
 
 ioloop.run_until_complete(main())
