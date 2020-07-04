@@ -29,6 +29,31 @@ type Reply struct {
 	ReduceNumber int
 }
 
+type RegisterArgs struct {
+}
+
+type RegisterReply struct {
+	WorkerID int
+}
+
+type ReqTaskArgs struct {
+	WorkerID int
+}
+
+type ReqTaskReply struct {
+	Task *Task
+}
+
+type ReportTaskArgs struct {
+	Done     bool
+	Seq      int
+	Phase    TaskPhase
+	WorkerId int
+}
+
+type ReportTaskReply struct {
+}
+
 // Add your RPC definitions here.
 
 // Cook up a unique-ish UNIX-domain socket name

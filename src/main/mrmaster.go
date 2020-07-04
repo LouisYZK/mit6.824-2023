@@ -24,6 +24,7 @@ func main() {
 
 	m := mr.MakeMaster(os.Args[1:], 10)
 	for m.Done() == false {
+		fmt.Println("lloop...")
 		time.Sleep(time.Second)
 	}
 
