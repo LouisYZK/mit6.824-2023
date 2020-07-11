@@ -5,8 +5,8 @@ Besides golang used in lecture, i also use python which i am more familiar with 
 
 If you find some errors, welcome to issue me !~
 
-- [https://github.com/LouisYZK/mit6.824-2020/tree/master/pydemo/mr_with_crash](Lab1-MapReduce golang version)
-- [https://github.com/LouisYZK/mit6.824-2020/tree/master/src/mr](Lab1-MapReuduce python version)
+- [Lab1-MapReduce golang version](https://github.com/LouisYZK/mit6.824-2020/tree/master/pydemo/mr_with_crash)
+- [Lab1-MapReuduce python version](https://github.com/LouisYZK/mit6.824-2020/tree/master/src/mr)
 
 continue to finish...
 
