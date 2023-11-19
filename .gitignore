@@ -1,6 +1,10 @@
-pkg/
-api.key
-*-handin.tar.gz
-*.json
-mr-*
-*.pyc
+third_party
+Makefile
+CMakeCache.txt
+CMakeFiles/
+TxtFileReader
+cmake_install.cmake
+compile_commands.json
+mr-out*
+.cache
+options-pinned.h
