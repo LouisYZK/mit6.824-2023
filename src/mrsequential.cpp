@@ -14,11 +14,9 @@ namespace fs = std::filesystem;
 std::vector<fs::path> read_txt_files(const fs::path& directory) {
     std::vector<fs::path> txt_files;
 
-    // 检查提供的路径是否存在且为一个目录
     if (fs::exists(directory) && fs::is_directory(directory)) {
         // 遍历目录
         for (const auto& entry : fs::directory_iterator(directory)) {
-            // 检查文件是否以.txt结尾
             if (entry.is_regular_file() &&
                 entry.path().extension() == ".txt" && 
                 entry.path().filename().string().substr(0, 2) == "pg") {
@@ -35,8 +33,13 @@ std::vector<fs::path> read_txt_files(const fs::path& directory) {
 
 int main(int argc, char* argv[]) {
     gflags::ParseCommandLineFlags(&argc, &argv, true);
-    auto directory = fs::current_path(); // 或者指定其他路径
-    auto txt_files = read_txt_files(directory);
+    auto directory = fs::current_path();
+    auto mr_data_file = fs::path(FLAGS_mrdata_path);
+    if (!fs::exists(directory / mr_data_file)) {
+        spdlog::error("Cannot find data file: {}", mr_data_file.string());
+        return -1;
+    }
+    auto txt_files = read_txt_files(directory / mr_data_file);
     auto app = AppCreator<MapReduceApp>::instance()->create(FLAGS_mrapp);
     if (app == nullptr) {
         spdlog::error("Cannot find app: {}", FLAGS_mrapp);

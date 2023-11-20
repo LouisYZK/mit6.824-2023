@@ -8,3 +8,5 @@ compile_commands.json
 mr-out*
 .cache
 options-pinned.h
+*.dylib
+build
